@@ -4,6 +4,7 @@ import { WebcamView } from "@/components/WebcamView";
 import { MapView } from "@/components/MapView";
 import { PassengerChart } from "@/components/PassengerChart";
 import { AlertFeed } from "@/components/AlertFeed";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useQuery } from "@tanstack/react-query";
 
@@ -94,22 +95,30 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Webcam View */}
           <div className="h-[400px] animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <WebcamView />
+            <ErrorBoundary>
+              <WebcamView />
+            </ErrorBoundary>
           </div>
 
           {/* Map View */}
           <div className="h-[400px] animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <MapView vehicles={vehicles} />
+            <ErrorBoundary>
+              <MapView vehicles={vehicles} />
+            </ErrorBoundary>
           </div>
 
           {/* Passenger Chart */}
           <div className="h-[400px] animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <PassengerChart data={passengerData} />
+            <ErrorBoundary>
+              <PassengerChart data={passengerData} />
+            </ErrorBoundary>
           </div>
 
           {/* Alert Feed */}
           <div className="h-[400px] animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <AlertFeed alerts={alerts} onAcknowledge={acknowledgeAlert} />
+            <ErrorBoundary>
+              <AlertFeed alerts={alerts} onAcknowledge={acknowledgeAlert} />
+            </ErrorBoundary>
           </div>
         </div>
       </div>

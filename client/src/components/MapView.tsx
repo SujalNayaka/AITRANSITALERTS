@@ -16,27 +16,61 @@ export function MapView({ vehicles }: MapViewProps) {
   useEffect(() => {
     if (!mapRef.current || leafletMapRef.current) return;
 
-    // Initialize Leaflet map
-    const L = (window as any).L;
-    if (!L) {
-      console.error("Leaflet not loaded");
-      return;
+    // Wait for Leaflet to load
+    const initializeMap = () => {
+      const L = (window as any).L;
+      if (!L) {
+        console.error("Leaflet not loaded");
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Bangalore coordinates
+        const map = L.map(mapRef.current).setView([12.9716, 77.5946], 13);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          maxZoom: 19,
+        }).addTo(map);
+
+        leafletMapRef.current = map;
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Error initializing Leaflet map:", error);
+        setIsLoading(false);
+      }
+    };
+
+    // Check if Leaflet is already loaded
+    if ((window as any).L) {
+      initializeMap();
+    } else {
+      // Wait for Leaflet to load
+      const checkLeaflet = setInterval(() => {
+        if ((window as any).L) {
+          clearInterval(checkLeaflet);
+          initializeMap();
+        }
+      }, 100);
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        clearInterval(checkLeaflet);
+        if (!leafletMapRef.current) {
+          console.error("Leaflet failed to load within timeout");
+          setIsLoading(false);
+        }
+      }, 5000);
     }
-
-    // Bangalore coordinates
-    const map = L.map(mapRef.current).setView([12.9716, 77.5946], 13);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      maxZoom: 19,
-    }).addTo(map);
-
-    leafletMapRef.current = map;
-    setIsLoading(false);
 
     return () => {
       if (leafletMapRef.current) {
-        leafletMapRef.current.remove();
+        try {
+          leafletMapRef.current.remove();
+        } catch (e) {
+          console.error("Error removing map:", e);
+        }
         leafletMapRef.current = null;
       }
     };
